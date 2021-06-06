@@ -19,20 +19,25 @@ def output_text(filepath, content):
     fp.close()                  # 關閉檔案
 
 ### get argv[1] as input
-if len(sys.argv) >=4:
-    username = sys.argv[1]
-    password = sys.argv[2]
-    issue_id = sys.argv[3]
+if len(sys.argv) >=2:
+    issue_id = sys.argv[1]
 else:
-    print('usage: python main.py [username] [password] [issue id]\n')
+    print('usage: python main.py [issue id]\n')
     quit()
 
+### the main program
+# Get environment variables
+mantis_url = os.environ.get('mantis_url')
+username = os.environ.get('mantis_username')
+password = os.environ.get('mantis_password')
+mantis_project = os.environ.get('mantis_project')
+
 ### read file in all_lines
-mc = create_mantis_soap_connector("https://bugtracking.qnap.com.tw/api/soap/mantisconnect.php?wsdl")
+mc = create_mantis_soap_connector(mantis_url)
 mc.set_user_passwd(username, password)
 mc.connect()
 
-p = SimpleProject(mc, "QTS 4.x")
+p = SimpleProject(mc, mantis_project)
 filter_name = "all security issues"
 issue_list = p.request_filter_all_issues(filter_name)
 for issue in issue_list:
