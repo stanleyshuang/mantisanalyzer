@@ -10,7 +10,9 @@ from dateutil.relativedelta import relativedelta
 
 class UtilTz:
     tz_dict = {'Asia/Taipei': 'Taipei',
-               'America/New_York': 'New York'}
+               'America/New_York': 'New York',
+               'Europe/London': 'London',
+               'GMT': 'GMT',}
        
     def code_to_description(self, tz):
         if tz and self.tz_dict.get(tz):
@@ -22,19 +24,16 @@ class UtilTz:
 def utc_to_local_str(utc_datetime, local_tz_str='Asia/Taipei', format='%Y/%m/%d %H:%M:%S'):
     local_zone = tz.gettz(local_tz_str)
     if local_zone and utc_datetime:
-        utc_datetime = utc_datetime.replace(tzinfo=tz.tzutc())
+        utc_datetime = utc_datetime.replace(tzinfo=tz.gettz('UTC'))
         local_datetime = utc_datetime.astimezone(local_zone)
         return local_datetime.strftime(format)
     return 'N/A'
 
 
-def utc_to_local(utc_datetime, local_tz_str='Asia/Taipei'):
-    local_zone = tz.gettz(local_tz_str)
-    if local_zone and utc_datetime:
-        utc_datetime = utc_datetime.replace(tzinfo=tz.tzutc())
-        local_datetime = utc_datetime.astimezone(local_zone)
-        return local_datetime
-    return None
+def local_to_local_str(local_datetime, format='%Y/%m/%d %H:%M:%S'):
+    if local_datetime:
+        return local_datetime.strftime(format)
+    return 'N/A'
     
     
 def local_str_to_utc(local_datetime_str, local_tz_str='Asia/Taipei', format='%Y/%m/%d %H:%M:%S'):
@@ -42,16 +41,34 @@ def local_str_to_utc(local_datetime_str, local_tz_str='Asia/Taipei', format='%Y/
     local_zone = tz.gettz(local_tz_str)
     if local_zone:
         local_datetime = local_datetime.replace(tzinfo=local_zone)
-        utc_datetime = local_datetime.astimezone(tz.tzutc())
+        utc_datetime = local_datetime.astimezone(tz.gettz('UTC'))
         return utc_datetime
+    return None
+    
+    
+def local_str_to_local(local_datetime_str, local_tz_str='Asia/Taipei', format='%Y/%m/%d %H:%M:%S'):
+    local_datetime = datetime.strptime(local_datetime_str, format)
+    local_zone = tz.gettz(local_tz_str)
+    if local_zone and local_datetime:
+        local_datetime = local_datetime.replace(tzinfo=local_zone)
+        return local_datetime
+    return None
+
+
+def utc_to_local(utc_datetime, local_tz_str='Asia/Taipei'):
+    local_zone = tz.gettz(local_tz_str)
+    if local_zone and utc_datetime:
+        utc_datetime = utc_datetime.replace(tzinfo=tz.gettz('UTC'))
+        local_datetime = utc_datetime.astimezone(local_zone)
+        return local_datetime
     return None
     
     
 def local_to_utc(local_datetime, local_tz_str='Asia/Taipei'):
     local_zone = tz.gettz(local_tz_str)
-    if local_zone:
+    if local_zone and local_datetime:
         local_datetime = local_datetime.replace(tzinfo=local_zone)
-        utc_datetime = local_datetime.astimezone(tz.tzutc())
+        utc_datetime = local_datetime.astimezone(tz.gettz('UTC'))
         format='%Y-%m-%d %H:%M:%S'
         utc_datetime = datetime.strptime(utc_datetime.strftime(format), format)
         return utc_datetime
@@ -164,3 +181,8 @@ def within_30_days_before(original_datetime, target_datetime):
     if diff_days >= 0:
         return True
     return False
+
+
+def duration_days(original_datetime, new_datetime):
+    delta = new_datetime - original_datetime
+    return delta.days

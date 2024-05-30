@@ -1,0 +1,2 @@
+Id,Project,Reporter,Assigned To,Priority,Severity,Reproducibility,Product Version,Category,Date Submitted,OS,OS Version,Platform,View Status,Updated,Summary,Status,Resolution,Fixed in Version
+0088167,QTS 4.x,daniellei@qnap.com,stanleyshuang@qnap.com,normal,major,have not tried,NAS_4.3.6,"Security, Malware Remover",2022-01-15,,,,public,2022-04-01,Qlocker 2 attack on newest 4.3.6 firmware,assigned,open,

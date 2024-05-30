@@ -1,0 +1,6 @@
+Id,Project,Reporter,Assigned To,Priority,Severity,Reproducibility,Product Version,Category,Date Submitted,OS,OS Version,Platform,View Status,Updated,Summary,Status,Resolution,Fixed in Version
+0095899,QTS 4.x,bikram@qnap.com,myronsu@qnap.com,normal,minor,always,NAS_5.0.0,"Security, Malware Remover",2022-07-07,,,,public,2022-07-09,checkmate ransomeware attack on TS-453U-rp nas,assigned,open,
+0095898,QTS 4.x,bikram@qnap.com,myronsu@qnap.com,normal,minor,always,NAS_5.0.0,"Security, Malware Remover",2022-07-07,,,,public,2022-07-10,checkmate ransomeware attack,assigned,open,
+0095737,QTS 4.x,adonglin@qnap.com,myronsu@qnap.com,urgent,major,have not tried,NAS_5.0.0,"Security, Malware Remover",2022-07-04,,,,public,2022-07-04,[Ransomware][checkmate] TS-431XeU encrypted with *.checkmate,assigned,open,
+0095731,QTS 4.x,lukeliu@qnap.com,myronsu@qnap.com,urgent,major,have not tried,NAS_5.0.0,"Security, Malware Remover",2022-07-04,,,,public,2022-07-05,[Ransomware][checkmate] TS-251A encrypted with *.checkmate,assigned,open,
+0095543,QTS 4.x,lukeliu@qnap.com,myronsu@qnap.com,high,major,have not tried,NAS_5.0.0,"Security, Malware Remover",2022-06-28,,,,public,2022-06-29,[Ransomware] checkmate on TS-251B 5.0.0.1891,assigned,open,

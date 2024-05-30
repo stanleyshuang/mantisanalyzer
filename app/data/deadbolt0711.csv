@@ -1,0 +1,11 @@
+Id,Project,Reporter,Assigned To,Priority,Severity,Reproducibility,Product Version,Category,Date Submitted,OS,OS Version,Platform,View Status,Updated,Summary,Status,Resolution,Fixed in Version
+0096357,QTS 4.x,williamdigonnet@qnap.com,myronsu@qnap.com,normal,minor,have not tried,NAS_4.3.6,"Security, Malware Remover",2022-07-19,,,,public,2022-07-20,[QTS][Security][Malware] deadboltRansomPageRecovery.sh not working - mktemp: invalid option -- 'p',assigned,open,
+0096310,QTS 4.x,timwu@qnap.com,myronsu@qnap.com,high,major,have not tried,NAS_4.3.6,"Security, Malware Remover",2022-07-18,,,,public,2022-07-20,"NAS data has been encrypt by deadbolt, but no Deadbolt web page",assigned,open,
+0096283,QTS 4.x,williamdigonnet@qnap.com,myronsu@qnap.com,normal,minor,have not tried,NAS_4.3.6,"Security, Malware Remover",2022-07-18,,,,public,2022-07-20,[Ransomware] [Deadbolt] Malware Remover not removing Deadbolt page,assigned,open,
+0096271,QTS 4.x,damonngan@qnap.com,damonngan@qnap.com,normal,minor,always,,"Security, Malware Remover",2022-07-16,QTS,4.3.6.2050 ,TS-228,public,2022-07-20,Malware: Deadbolt  Restore deadbolt script not work,assigned,open,
+0096270,QTS 4.x,simonyang@qnap.com,myronsu@qnap.com,normal,minor,have not tried,,Others,2022-07-16,,,,public,2022-07-20,deadboltRansomPageRecovery.sh isn't working for Firmware 4.3.6_20220526,assigned,open,
+0096231,QTS 4.x,yufanchen@qnap.com,myronsu@qnap.com,normal,minor,have not tried,NAS_5.0.0,"Security, Malware Remover",2022-07-15,,,,public,2022-07-20,DeadBolt with FW,assigned,open,
+0096217,QTS 4.x,yufanchen@qnap.com,yufanchen@qnap.com,normal,minor,have not tried,NAS_4.3.3,"Security, Malware Remover",2022-07-15,,,,public,2022-07-20,Deadbolt with FW 4.3.6.1907(20220103),assigned,open,
+0096210,QTS 4.x,christopher@qnap.com,christopher@qnap.com,high,major,N/A,NAS_4.3.3,"Security, Malware Remover",2022-07-15,,,,public,2022-07-20,Not able to restore the Deadbolt page,assigned,open,
+0096204,QTS 4.x,christopher@qnap.com,christopher@qnap.com,normal,minor,unable to reproduce,NAS_5.0.0,"Security, Malware Remover",2022-07-15,,,,public,2022-07-19,It appears NAS on 5.0.0 was hit by DeadBolt Randomware,closed,fixed,
+0096156,QTS 4.x,simonyang@qnap.com,myronsu@qnap.com,normal,minor,have not tried,,Others,2022-07-14,,,,public,2022-07-20,FW 4.3.4_20220303 got hit by deadbolt,assigned,open,
