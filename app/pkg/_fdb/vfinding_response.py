@@ -4,7 +4,7 @@
 # Project:  vulnrep 2.0
 # Date:     2022-04-17
 #
-import json, os
+import os
 from . import permanent_obj
 
 
@@ -55,13 +55,11 @@ class vfinding_response(permanent_obj):
         issuekey,
         sf_data,
         jira_summary,
-        jira_description,
         sf_subject,
         b_plan_2_disclose,
         b_request_info,
         researcher_name,
         the_data,
-        rejecteds,
     ):
         print("   寄出確認信")
         from pkg._qjira.description import (
@@ -70,23 +68,23 @@ class vfinding_response(permanent_obj):
             extract_cveid,
         )
 
-        ### 在 jira_description 找 '[sf-sub-report]'
-        sf_sub_report = ''
-        lines = jira_description.split('\n')
-        for line in lines:
-            if line.lower().find("[sf-sub-report]") >= 0:
-                sf_sub_report = line.strip().replace("[sf-sub-report]", "")
-
         # mail_subject
-        if len(sf_sub_report) == 0:
-            mail_subject = sf_subject
-        else:
-            mail_subject = sf_sub_report
+        mail_subject = sf_subject
 
         # receiver
         receiver = sf_data["researcher_email"]
 
         # mail_body
+        mail_template = (
+            "Dear {researcher_name},\n\n"
+            "Thank you for the diligent submission of vulnerability reports. After a meticulous review, our team has confirmed the validity of the initial triage results.\n"
+            "Here is the breakdown of the vulnerability report:\n\n"
+            "{vuln_analysis_statement}"  # 'Do you agree with the triage results?{plan_2_disclose}\n\n' \
+            "{outscope}"
+            "{collect_personal_data}"
+            "Should you need any further clarification or assistance, please don't hesitate to contact us. We are committed to providing support and addressing any concerns you may have.\n\n"
+            "Best regards,\nQNAP PSIRT\n\n"
+        )
         vuln_analysis_statement = ""
         if b_plan_2_disclose:
             plan_2_disclose = " And do you plan to disclose the vulnerabilities?"
@@ -110,34 +108,18 @@ class vfinding_response(permanent_obj):
         b_outscope = False
         validated = analysis = ""
 
-
         for data in the_data:
             str_cveids = "n/a"
             cveids = extract_cveid(data["summary"])
             if cveids:
                 str_cveids = ", ".join(cveids)
-            '''
             if len(the_data) == 1:
                 summary = sf_subject + (
                     " - " + str_cveids if str_cveids != "n/a" else ""
                 )
+
             else:
                 summary = str_cveids
-            '''
-            
-            if "sf-sub-report" in data["analysis"].json_obj:
-                summary = data["analysis"].json_obj['sf-sub-report'] + (
-                    " - " + str_cveids if str_cveids != "n/a" else ""
-                )
-            elif len(sf_sub_report) > 0:
-                summary = sf_sub_report + (
-                    " - " + str_cveids if str_cveids != "n/a" else ""
-                )
-            else:
-                summary = sf_subject + (
-                    " - " + str_cveids if str_cveids != "n/a" else ""
-                )
-
             validated = data["validated"]
             analysis = data["analysis"]
 
@@ -158,8 +140,8 @@ class vfinding_response(permanent_obj):
             low, high = severity_level_2_cvssv3_score(severity_level)
 
             vuln_analysis_statement += (
-                "   Subject: {summary}\n"
-                "   Severity level: {severity_level}, with a CVSS score of {low} - {high}.\n".format(
+                "- {summary}\n"
+                "   Severity level: {severity_level}, with a CVSSv3 Score of {low} - {high}.\n".format(
                     summary=summary, severity_level=severity_level, low=low, high=high
                 )
             )
@@ -191,15 +173,6 @@ class vfinding_response(permanent_obj):
             else:
                 vuln_analysis_statement += "\n"
 
-        reject_statement = None
-        if rejecteds:
-            reject_statement = ''
-            for reject in rejecteds:
-                import re
-                m = re.search(r"\[gpt-invalid\]\s*\{noformat\}\s*(.*?)\s*\{noformat\}",reject, re.DOTALL)
-                if m and m.group(1):
-                    reject_statement += m.group(1) + '\n'
-
         outscope = ""
         if b_outscope:
             outscope = (
@@ -209,16 +182,28 @@ class vfinding_response(permanent_obj):
                 "- {$locations}\n\n"
                 "Although the reported vulnerability is not eligible for a reward under our program, we greatly appreciate the information you provided. To express our gratitude, we will still provide a monetary reward."
             )
-        
-        mail_template = {
-            "researcher_name": researcher_name,
-            'vuln_analysis_statement': vuln_analysis_statement,
-            'collect_personal_data': collect_personal_data,
-            'plan_2_disclose': plan_2_disclose,
-            'outscope': outscope,
-        }
-        if reject_statement and len(reject_statement) > 0:
-            mail_template['reject_statement'] = reject_statement
 
-        self.update(issuekey, mail_template)
-        return mail_template
+        body = mail_template.format(
+            researcher_name=researcher_name,
+            vuln_analysis_statement=vuln_analysis_statement,
+            collect_personal_data=collect_personal_data,
+            plan_2_disclose=plan_2_disclose,
+            outscope=outscope,
+        )
+        url = os.environ.get("jira_url") + "/browse/" + issuekey
+        the_mail = {
+            "url": url,
+            "date": validated,
+            "subject": mail_subject,
+            "receiver": receiver,
+            "body": body,
+            "sub_report_num": len(the_data),
+        }
+        self.update(issuekey, the_mail)
+
+        from pkg._mail import i_mail
+
+        notification_body = body + "\n---\n" + receiver + "\n---\n" + validated
+        mail = i_mail(mail_subject, notification_body)
+        mail.send()
+        return the_mail

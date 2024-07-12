@@ -11,7 +11,7 @@ from pkg._qjira.description import (
     extract_cweid,
     extract_capecid,
     extract_quality_score,
-    extract_cvss_score,
+    extract_cvssv3_score,
 )
 from pkg._qjira.description import (
     extract_severity_level,
@@ -47,8 +47,8 @@ class analysis(permanent_obj):
 
                         'cweids':           CWD ID array,
                         'capecids':         CAPEC ID array,
-                        'cvssv3_vec':       CVSS vector,
-                        'cvssv3_score':     CVSS score,
+                        'cvssv3_vec':       CVSSv3 vector,
+                        'cvssv3_score':     CVSSv3 score,
                         'description':      Description score,
                         'poc':              PoC score,
                         # 'suggestion':       Suggestion score,
@@ -127,48 +127,47 @@ class analysis(permanent_obj):
     def cve_json_callback(the_obj, cid, author, time, line):
         b_updated = False
 
-        ### 解析 cweids, capecids, cvssv3_vec, cvssv3_score
-        cweids = extract_cweid(line)
-        capecids = extract_capecid(line)
-        cvssv3_vec, cvssv3_score, b_40 = extract_cvss_score(line)
+        if not the_obj._b_use_ex or line.find("(EX)") >= 0:
+            cweids = extract_cweid(line)
+            capecids = extract_capecid(line)
+            cvssv3_vec, cvssv3_score = extract_cvssv3_score(line)
 
-        if cweids or capecids or cvssv3_vec or cvssv3_score:
-            if line.find("(EX)") >= 0 and the_obj._b_use_ex == False:
-                the_obj._b_use_ex = True
-                the_obj.json_obj.pop("cweids", None)
-                the_obj.json_obj.pop("capecids", None)
-                the_obj.json_obj.pop("cvssv3_vec", None)
-                the_obj.json_obj.pop("cvssv3_score", None)
+            if cweids or capecids or cvssv3_vec or cvssv3_score:
+                if line.find("(EX)") >= 0 and the_obj._b_use_ex == False:
+                    the_obj._b_use_ex = True
+                    the_obj.json_obj.pop("cweids", None)
+                    the_obj.json_obj.pop("capecids", None)
+                    the_obj.json_obj.pop("cvssv3_vec", None)
+                    the_obj.json_obj.pop("cvssv3_score", None)
 
-        if cweids:
-            if "cweids" not in the_obj.json_obj:
-                the_obj.json_obj["cweids"] = []
-            for cweid in cweids:
-                if cweid not in the_obj.json_obj["cweids"]:
-                    # print("CWE ID: {cweid}".format(cweid=cweid))
-                    the_obj.json_obj["cweids"].append(cweid)
-                    b_updated = True
+            if cweids:
+                if "cweids" not in the_obj.json_obj:
+                    the_obj.json_obj["cweids"] = []
+                for cweid in cweids:
+                    if cweid not in the_obj.json_obj["cweids"]:
+                        # print("CWE ID: {cweid}".format(cweid=cweid))
+                        the_obj.json_obj["cweids"].append(cweid)
+                        b_updated = True
 
-        if capecids:
-            if "capecids" not in the_obj.json_obj:
-                the_obj.json_obj["capecids"] = []
-            for capecid in capecids:
-                if capecid not in the_obj.json_obj["capecids"]:
-                    # print("CAPEC ID: {capecid}".format(capecid=capecid))
-                    the_obj.json_obj["capecids"].append(capecid)
-                    b_updated = True
+            if capecids:
+                if "capecids" not in the_obj.json_obj:
+                    the_obj.json_obj["capecids"] = []
+                for capecid in capecids:
+                    if capecid not in the_obj.json_obj["capecids"]:
+                        # print("CAPEC ID: {capecid}".format(capecid=capecid))
+                        the_obj.json_obj["capecids"].append(capecid)
+                        b_updated = True
 
-        if cvssv3_vec:
-            # print("CVSSv3.1: vectorString {cvssv3_vec}".format(cvssv3_vec=cvssv3_vec))
-            the_obj.json_obj["cvssv3_vec"] = cvssv3_vec
-            b_updated = True
+            if cvssv3_vec:
+                # print("CVSSv3.1: vectorString {cvssv3_vec}".format(cvssv3_vec=cvssv3_vec))
+                the_obj.json_obj["cvssv3_vec"] = cvssv3_vec
+                b_updated = True
 
-        if cvssv3_score:
-            # print("CVSSv3.1: Score: {cvssv3_score}".format(cvssv3_score=cvssv3_score))
-            the_obj.json_obj["cvssv3_score"] = cvssv3_score
-            b_updated = True
+            if cvssv3_score:
+                # print("CVSSv3.1: Score: {cvssv3_score}".format(cvssv3_score=cvssv3_score))
+                the_obj.json_obj["cvssv3_score"] = cvssv3_score
+                b_updated = True
 
-        ### 解析 description, poc
         quality_score_keys = ["description", "poc", "steps", "content"]
         for quality_key in quality_score_keys:
             quality_score = extract_quality_score(quality_key, line)
@@ -187,7 +186,6 @@ class analysis(permanent_obj):
             the_obj.json_obj["commented"] = True
 
         if b_updated:
-            ### 更新 validated, duration
             time = time.replace(tzinfo=tz.gettz("Asia/Taipei"))
             if "validated" in the_obj.json_obj:
                 validated_time = local_str_to_local(
@@ -206,11 +204,8 @@ class analysis(permanent_obj):
                     the_obj.json_obj["duration"] = duration_days(created_time, time)
 
     def update_cveid_severity_summary(
-        self, summary, histories, reporter, task_created_date, sf_sub_report=None
+        self, summary, histories, reporter, task_created_date
     ):
-        if sf_sub_report:
-            self.json_obj['sf-sub-report'] = sf_sub_report
-
         if "cveid" in self.json_obj and len(self.json_obj["cveid"]) > 0:
             pass
         cveids = extract_cveid(summary)
@@ -363,9 +358,9 @@ class analysis(permanent_obj):
                 if b_request_capec:
                     msg += "   - CAPEC ID(s)\n"
                 if b_request_cvssv3_vec:
-                    msg += "   - CVSS vector\n"
+                    msg += "   - CVSSv3 vector\n"
                 if b_request_cvssv3_score:
-                    msg += "   - CVSS score\n"
+                    msg += "   - CVSSv3 score\n"
                 for quality_key in b_request_quality_scores:
                     msg += "   - {quality_key} score\n".format(
                         quality_key=quality_key_maps[quality_key]

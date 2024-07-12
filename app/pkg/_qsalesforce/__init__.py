@@ -34,12 +34,12 @@ class SF(Salesforce):
 
 def sf_get_data(orgid, username, password, case_num):
     sf = Salesforce(password=password, username=username, organizationId=orgid)
-    SOQL = "SELECT Id, CaseNumber, CreatedDate, ContactId, Subject, Description, Status, Root_Cause__c FROM Case WHERE CaseNumber='{case_num}'".format(
+    SOQL = "SELECT Id, CaseNumber, CreatedDate, ContactId, Subject, Description, Status FROM Case WHERE CaseNumber='{case_num}'".format(
         case_num=case_num
     )
     data = sf.query(SOQL)
 
-    '''
+    """
     print('SF data enumerating..')
     for key in data:
         print('  '+key)
@@ -47,10 +47,10 @@ def sf_get_data(orgid, username, password, case_num):
             it = iter(data[key])
             print('SF data {key} enumerating..'.format(key=key))
             for k in data[key]:
-                print('    '+str(k))
+                print('    '+k)
         except TypeError as te:
             continue
-    '''
+    """
 
     for record in data["records"]:
         sf_case_id = record["Id"]
@@ -63,7 +63,6 @@ def sf_get_data(orgid, username, password, case_num):
         subject = record["Subject"]
         description = record["Description"]
         status = record["Status"]
-        root_cause = record["Root_Cause__c"]
 
         ### Update date
         created_datetime = datetime.strptime(created_date, "%Y-%m-%dT%H:%M:%S.000+0000")
@@ -132,7 +131,7 @@ def sf_case_comment(orgid, username, password, sf_case_id, the_comment):
 
 
 def sf_update_case(
-    orgid, username, password, sf_case_id, subject=None, description=None, status=None, root_cause=None, root_cause_description=None
+    orgid, username, password, sf_case_id, subject=None, description=None, status=None
 ):
     sf = SF(password=password, username=username, organizationId=orgid)
     if subject:
@@ -141,10 +140,6 @@ def sf_update_case(
         sf.Case.update(sf_case_id, {"Description": description})
     if status:
         sf.Case.update(sf_case_id, {"Status": status})
-    if root_cause:
-        sf.Case.update(sf_case_id, {"Root_Cause__c": root_cause})
-    if root_cause_description:
-        sf.Case.update(sf_case_id, {"Description_Root_Cause__c": root_cause_description})
 
 
 def sf_get_attachments(

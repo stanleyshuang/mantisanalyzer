@@ -74,7 +74,7 @@ class ParseQtsInstallTimeCoreTestCase(unittest.TestCase):
             '============= [ CONNECTION LOG ]  <a href="#top">[ TOP ]</a>\n',
         ]
         incident_date = datetime.strptime('2022-05-02', '%Y-%m-%d')
-        config = qts_install_time_core('91837', config, lines, [], incident_date)
+        config = qts_install_time_core('91837', config, lines, incident_date)
         self.assertTrue(config['Date']=='20220501-23:36:22' and
                         config['Model']=='TS-253Be' and
                         config['Firmware']=='[#91837] [2022-05-01] QTS 5.0.0.1986(20220324)' and
@@ -104,7 +104,7 @@ class ParseQtsInstallTimeCoreTestCase(unittest.TestCase):
             '============= [ CONNECTION LOG ]  <a href="#top">[ TOP ]</a>\n',
         ]
         incident_date = datetime.strptime('2022-03-15', '%Y-%m-%d')
-        config = qts_install_time_core('91837', config, lines, [], incident_date)
+        config = qts_install_time_core('91837', config, lines, incident_date)
         self.assertTrue(config['Date']=='20220501-23:36:22' and
                         config['Model']=='TS-253Be' and
                         config['Firmware']=='[#91837] [2022-01-30] QTS 5.0.0.1891(20211221)' and
@@ -134,7 +134,7 @@ class ParseQtsInstallTimeCoreTestCase(unittest.TestCase):
             '============= [ CONNECTION LOG ]  <a href="#top">[ TOP ]</a>\n',
         ]
         incident_date = datetime.strptime('2022-01-15', '%Y-%m-%d')
-        config = qts_install_time_core('91837', config, lines, [], incident_date)
+        config = qts_install_time_core('91837', config, lines, incident_date)
         self.assertTrue(config['Date']=='20220501-23:36:22' and
                         config['Model']=='TS-253Be' and
                         config['Firmware']=='[#91837] [2022-05-23] 5.0.0_20220324' and

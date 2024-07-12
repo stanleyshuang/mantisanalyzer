@@ -179,29 +179,14 @@ def lines_in_index_pages(diagnostics_path):
                     return lines
     return None
 
-def lines_in_kernel_logs(diagnostics_path):
-    subfolders = get_sub_folder_list(diagnostics_path)
-    if subfolders and len(subfolders)>0:
-        root = subfolders[0]
-        subfolders = get_sub_folder_list(diagnostics_path+'/'+root)
-        if 'tmp' in subfolders:
-            pages = get_name_list_of_files(diagnostics_path+'/'+root+'/tmp')
-            if pages and len(pages)>0 and 'klogd_dump.log' in pages:
-                kernel_logs = diagnostics_path+'/'+root+'/tmp/klogd_dump.log'
-                lines = get_lines_b(kernel_logs)
-                return lines
-    return None
-
-def qts_install_time_core(mantis_id, config, eventLines, kernelLines, incident_date):
+def qts_install_time_core(mantis_id, config, lines, incident_date):
     print('incident date: {incident_date}'.format(incident_date=incident_date.strftime('%Y-%m-%d')))
     system_events = []
     kernel_events = []
     event_log_begin = 0
     connection_log_begin = 0
     i = 0
-
-    ### Event Logs
-    for line in eventLines:
+    for line in lines:
         if i<20 and any(substring in line for substring in ['Model:', 'Firmware:', 'Date:']):
             if line.find('Model:')>=0:
                 config['Model'] = line[7:len(line)-1]
@@ -217,6 +202,10 @@ def qts_install_time_core(mantis_id, config, eventLines, kernelLines, incident_d
         # if line.find('[Firmware Update] Started downloading firmware')>=0:
         if line.find('[Firmware Update]')>=0:
             system_events.append(line)
+
+        ### collecting logs into kernel_events
+        if line.find(') boot finished.')>=0:
+            kernel_events.append(line)
 
         i += 1
         if line.find('============= [ EVENT LOG ]')>=0:
@@ -250,15 +239,6 @@ def qts_install_time_core(mantis_id, config, eventLines, kernelLines, incident_d
                     break
         if b_match:
             break
-
-    ### Kernel Logs
-    if kernelLines:
-        for line in kernelLines:
-            ### collecting logs into kernel_events
-            if line.find(') boot finished.')>=0:
-                kernel_events.append(line)
-
-
     kernel_event_line_ptns = [
         r" ====== (\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} .*? \((\d{1}\.\d{1}\.\d{1}\.\d{4}-\d{8})\) boot finished\.",
     ]
@@ -283,10 +263,10 @@ def qts_install_time_core(mantis_id, config, eventLines, kernelLines, incident_d
 def qts_install_time(mantis_id, diagnostics_path, str_incident_date):
     now = datetime.now()
     config = {'Date': now.strftime('%Y-%m-%d')}
+    lines = lines_in_index_pages(diagnostics_path)
     incident_date = datetime.strptime(str_incident_date, '%Y-%m-%d')
-    eventLines = lines_in_index_pages(diagnostics_path)
-    kernelLines = lines_in_kernel_logs(diagnostics_path)
-    config = qts_install_time_core(mantis_id, config, eventLines, kernelLines, incident_date)
+    if lines:
+        config = qts_install_time_core(mantis_id, config, lines, incident_date)
             
     if len(config)>1:
         return config

@@ -66,7 +66,6 @@ class analysis_task(task):
         self._b_one_fixed = False
 
         self._cve_json_url = None
-        self.sf_sub_report = None
 
     @property
     def cve_json_url(self):
@@ -91,21 +90,14 @@ class analysis_task(task):
         return None
 
     def extract_sf_subject(self):
-        if self.sf_sub_report:
-            return self.sf_sub_report
         lines = self.issue.fields.description.split("\n")
-        sf_subject = None
         for line in lines:
             if line.lower().find("[sf-sub-report]") >= 0:
-                self.sf_sub_report = line.replace("[sf-sub-report]", "").strip()
-                return self.sf_sub_report
-            if sf_subject == None and line.find("[sf-subject]") >= 0:
-                sf_subject = line.replace("[sf-subject]", "").strip()
-        if sf_subject:
-            self.sf_sub_report = sf_subject
-            return self.sf_sub_report
+                return line.strip()
+            elif line.find("[sf-subject]") >= 0:
+                return line.replace("[sf-subject]", "").strip()
         if self.sf_data and "subject" in self.sf_data:
-            self.sf_sub_report = self.sf_data["subject"]
+            return self.sf_data["subject"]
         return None
 
     def set_sf_data(self, created_date, researcher_email, researcher_name, sf_data):
@@ -385,17 +377,6 @@ class analysis_task(task):
                             assignee=assignee
                         ),
                     )
-                elif model == "quwan":
-                    assignee = "JocephWang@qnap.com"
-                    analysis_task.add_watchers(
-                        self.jira, self.issue, ["AnryLu@qnap.com", "HarryChen@qnap.com"]
-                    )
-                    self.jira.add_comment(
-                        self.issue,
-                        "[~{assignee}],\n請協助檢查此弱點報告以前有沒有研究員報告過？需不需要修復？然後再轉回給 Stanley，謝謝。".format(
-                            assignee=assignee
-                        ),
-                    )
                 elif model == "qnap website":
                     assignee = "KyleChao@qnap.com"
                     self.jira.add_comment(
@@ -467,10 +448,10 @@ class analysis_task(task):
                 print("    " + str(e))
 
         # PgM Project Update: customfield_13601
-        # str_customfield_13601 = ""  # self.debug_obj.output_buff
-        # if self.issue.raw["fields"]["customfield_13601"] != str_customfield_13601:
+        str_customfield_13601 = ""  # self.debug_obj.output_buff
+        if self.issue.raw["fields"]["customfield_13601"] != str_customfield_13601:
             # print('--- Update Status (customfield_13601): [{data}]'.format(data=self.issue.raw['fields']["customfield_13601"]))
-            # self.issue.update(fields={"customfield_13601": str_customfield_13601})
+            self.issue.update(fields={"customfield_13601": str_customfield_13601})
 
     def get_gsheet_raw(self):
         """
@@ -485,7 +466,6 @@ class analysis_task(task):
             'severity_level':,
             'cveid':,
             'summary':,
-            'sf-sub-report':,
             ### Resolvation
             'fixing':,
             'resolved':,
@@ -528,7 +508,6 @@ class analysis_task(task):
             raw = self.analysis.set_raw(raw)
             raw["key"] = self.issue.key
             raw["summary"] = self.issue.fields.summary
-            raw["sf-sub-report"] = self.extract_sf_subject()
         ### Resolvation
         if self.fixing_date:
             fixing_date, raw["fixing"] = self.get_time_n_str(self.fixing_date)
@@ -703,8 +682,8 @@ class analysis_task(task):
                             'validated':        date time in format '2021-05-13',
                             'duration':         the duration between created to done,
                             'cweids':           CWD ID array,
-                            'cvssv3_vec':       CVSS vector,
-                            'cvssv3_score':     CVSS score,
+                            'cvssv3_vec':       CVSSv3 vector,
+                            'cvssv3_score':     CVSSv3 score,
                             'severity_level':   severity level,
                             'cveid':            CVE ID,
                         }
@@ -768,7 +747,6 @@ class analysis_task(task):
                 self.issue.changelog.histories,
                 self.issue.fields.reporter.name,
                 str_the_task_created_date,
-                sf_sub_report = self.extract_sf_subject()
             )
             if b_summary_with_severity:
                 comments = self.issue.fields.comment.comments
@@ -1229,12 +1207,10 @@ class analysis_task(task):
         if self.is_main_task():
             b_one_analysis_done = False
             sub_tasks = []
-            rejecteds = []
             for blocked_issue in self.dependent_issues:
                 if get_issuetype(blocked_issue.issue) == "Task":
                     blocked_task = blocked_issue
                     if blocked_task.analysis.is_analysis_done():
-                        ### report valid and analysis done
                         b_one_analysis_done = True
                         if vfinding_response.is_existing(blocked_task.issue.key):
                             the_summary = "n/a"
@@ -1275,15 +1251,6 @@ class analysis_task(task):
                             # print("summary: " + sub_task["summary"])
                             # print("validated: " + sub_task["validated"])
                             # print(sub_task["analysis"].dump())
-                    elif blocked_task.get_status_name() in ["abort"]:
-                        the_issue = blocked_task
-                        comments = the_issue.issue.fields.comment.comments
-                        for comment in comments:
-                            content = comment.body
-                            if content.find("[gpt-invalid]") >= 0:
-                                rejecteds.append(content)
-                                break
-
             if b_one_analysis_done and len(self.sf_data["researcher_email"]) > 0:
                 if vfinding_response.need_to_be_modified(
                     self.issue.key, len(sub_tasks)
@@ -1300,13 +1267,11 @@ class analysis_task(task):
                         self.issue.key,
                         self.sf_data,
                         self.issue.fields.summary,
-                        self.issue.fields.description,
                         self.extract_sf_subject(),
                         b_plan_2_disclose,
                         b_request_info,
                         researcher_name,
                         sub_tasks,
-                        rejecteds,
                     )
                     if the_mail_content:
                         self.get_investigation_info(data, downloads)
@@ -1335,7 +1300,6 @@ class analysis_task(task):
                         self.issue.changelog.histories,
                         self.issue.fields.reporter.name,
                         str_task_created_date,
-                        sf_sub_report = self.extract_sf_subject()
                     )
                     (
                         b_plan_2_disclose,
@@ -1354,13 +1318,11 @@ class analysis_task(task):
                         self.issue.key,
                         self.sf_data,
                         self.issue.fields.summary,
-                        self.issue.fields.description,
                         self.extract_sf_subject(),
                         b_plan_2_disclose,
                         b_request_info,
                         researcher_name,
                         [the_data],
-                        None,
                     )
                     if the_mail_content:
                         self.get_investigation_info(data, downloads)
@@ -1399,25 +1361,19 @@ class analysis_task(task):
             return True
         return False
 
-    def make_fed_data(self, fed_data, the_attachments):
-        the_text = json.dumps(fed_data) + '\n'
-        the_text += json.dumps(the_attachments) + '\n'
-        return the_text
-
-
     def get_investigation_info(self, data, downloads):
         self.mb_run_get_text = True
 
         import re
 
         vauthor = "{!Contact.LastName}"
-        fed_data = {}
+        the_text = ""
         the_prompt = None
 
         summary = self.issue.fields.summary
         description = self.issue.fields.description
-        fed_data['summary'] = summary
-        fed_data['description'] = description
+        the_text += "    summary:     " + summary + "\n\n"
+        the_text += "    description: " + description + "\n\n"
         lines = description.split("\n")
         for line in lines:
             if line.find("[vauthor]") >= 0:
@@ -1425,8 +1381,6 @@ class analysis_task(task):
                 if m and m.group(1):
                     vauthor = m.group(1)
                     break
-
-        fed_data['vauthor'] = vauthor
 
         comments = self.issue.fields.comment.comments.copy()
         if comments and len(comments) > 0:
@@ -1436,8 +1390,6 @@ class analysis_task(task):
             if author.find("StanleyS Huang") >= 0 and content.find("[gpt_prompt]") >= 0:
                 the_prompt = content
                 comments.pop()
-
-        fed_data['comments'] = []
         for comment in comments:
             cid = comment.id
             author = comment.author.displayName
@@ -1448,19 +1400,18 @@ class analysis_task(task):
                 self.mb_finding_response = True
             if content.find("[gpt_prompt]") >= 0:
                 continue
-            fed_data['comments'].append({
-                'cid': cid,
-                'author': author,
-                'time': time_str,
-                'content': content
-            })
+            the_text += "    cid:         " + cid + "\n"
+            the_text += "    author:      " + author + "\n"
+            the_text += "    time:        " + time_str + "\n"
+            the_text += "    content:     " + content + "\n\n"
+        print("the_text 長度 = " + str(len(the_text)))
 
         ### extract attachments
         from pkg._util.util_file import unzip_and_get_file_paths
         from pkg._qjira.comment import file_text_content
 
         # 列出可出抽取文字資訊的檔案
-        text_files = self.download_attachments(
+        files_including_text = self.download_attachments(
             downloads, analysis_task.is_text_info_included
         )
         # 列出可出壓縮檔案
@@ -1480,36 +1431,13 @@ class analysis_task(task):
                     or extracted_file.lower().endswith(".pdf")
                     or extracted_file.lower().endswith(".docx")
                 ):
-                    text_files.append(extracted_file)
+                    files_including_text.append(extracted_file)
 
+        prompts = [the_text]
         # 抽出文字資訊
-        the_attachments = []
-        for text_based_file in text_files:
-            the_content = { 
-                'filename': text_based_file,
-                'content':   file_text_content(text_based_file)
-            }
-            the_attachments.append(the_content)
+        for text_based_file in files_including_text:
+            the_content = "    attachment:     " + text_based_file + "\n"
+            the_content += file_text_content(text_based_file)
+            prompts.append(the_content)
 
-        return the_prompt, fed_data, the_attachments
-
-        '''
-        the_prompt:         none or str
-        fed_data: {
-            'summary':      str,
-            'description':  str,
-            'vauthor':      str,
-            'comments':     [
-                'cid':      str,
-                'author':   str,
-                'time':     str,
-                'content':  str,
-            ],
-        },
-        the_attachments: [
-            {
-                'filename': str,
-                'content':  str,
-            },
-        ]
-        '''
+        return the_prompt, vauthor, prompts

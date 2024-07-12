@@ -30,7 +30,7 @@ class i_issue():
         self.mc.connect()
 
         self.issue = self.mc.request_issue_get(self.mantisbt_id)
-        # print('Issue #{id} = {issue}'.format(id=self.mantisbt_id, issue=self.issue))
+        print('Issue #{id} = {issue}'.format(id=self.mantisbt_id, issue=self.issue))
 
     def get_attachment_list(self):
         attachment_list = []

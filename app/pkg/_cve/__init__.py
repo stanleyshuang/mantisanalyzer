@@ -163,7 +163,7 @@ class cve:
                 ### read json file into dict
                 cve_dict = open_json(cve_json_file)
                 ### Check it CVE JSON changed
-                if "dataVersion" in cve_dict and (cve_dict["dataVersion"] == "5.0" or cve_dict["dataVersion"] == "5.1.0"):
+                if "dataVersion" in cve_dict and cve_dict["dataVersion"] == "5.0":
                     from .json_5_0 import json_5_0
 
                     the_json_5_0 = json_5_0(
@@ -247,9 +247,6 @@ class cve:
             "QES": "QES",
             "myQNAPcloud": "QPKG",
             "QuMagie Mobile for Android": "MobileApp",
-            "Proxy Server": "QPKG",
-            "myQNAPcloud Link": "QPKG",
-            "Notes Station 3": "QPKG",
         }
         qsa_recommendations = {
             "QTS": (
@@ -735,14 +732,11 @@ class cve:
 
     @staticmethod
     def remote_authenticated(cvssv3_vec):
-        from pkg._qjira.description import extract_cvssv3_attr, extract_cvssv4_attr
-
-        str_remote_authenticated = ""
-        str_vectors = "unspecified vectors"
+        from pkg._qjira.description import extract_cvssv3_attr
 
         av, ac, pr, ui, s, c, i, a = extract_cvssv3_attr(cvssv3_vec)
-        if av == None or pr == None:
-            av, ac, at, pr, ui, vc, vi, va, sc, si, sa, e = extract_cvssv4_attr(cvssv3_vec)
+        str_remote_authenticated = ""
+        str_vectors = "unspecified vectors"
 
         if av == "N":  # 'NETWORK'
             str_remote_authenticated = ""
@@ -765,154 +759,65 @@ class cve:
 
     @staticmethod
     def cvss(cvssv3_vec, cvssv3_score):
-        from pkg._qjira.description import extract_cvssv3_attr, extract_cvssv4_attr
+        from pkg._qjira.description import extract_cvssv3_attr
 
         cvss = {}
         if cvssv3_vec:
             av, ac, pr, ui, s, c, i, a = extract_cvssv3_attr(cvssv3_vec)
-            if av and ac:
-                cvss["vectorString"] = cvssv3_vec
-                cvss["version"] = "3.1"
+            cvss["vectorString"] = cvssv3_vec
+            cvss["version"] = "3.1"
 
-                if av == "N":
-                    cvss["attackVector"] = "NETWORK"
-                elif av == "A":
-                    cvss["attackVector"] = "ADJACENT_NETWORK"
-                elif av == "L":
-                    cvss["attackVector"] = "LOCAL"
-                else:
-                    cvss["attackVector"] = "PHYSICAL"
-
-                if ac == "L":
-                    cvss["attackComplexity"] = "LOW"
-                else:
-                    cvss["attackComplexity"] = "HIGH"
-
-                if pr == "N":
-                    cvss["privilegesRequired"] = "NONE"
-                elif pr == "L":
-                    cvss["privilegesRequired"] = "LOW"
-                else:
-                    cvss["privilegesRequired"] = "HIGH"
-
-                if ui == "N":
-                    cvss["userInteraction"] = "NONE"
-                else:
-                    cvss["userInteraction"] = "REQUIRED"
-
-                if s == "C":
-                    cvss["scope"] = "CHANGED"
-                else:
-                    cvss["scope"] = "UNCHANGED"
-
-                if c == "H":
-                    cvss["confidentialityImpact"] = "HIGH"
-                elif c == "L":
-                    cvss["confidentialityImpact"] = "LOW"
-                else:
-                    cvss["confidentialityImpact"] = "NONE"
-
-                if i == "H":
-                    cvss["integrityImpact"] = "HIGH"
-                elif i == "L":
-                    cvss["integrityImpact"] = "LOW"
-                else:
-                    cvss["integrityImpact"] = "NONE"
-
-                if a == "H":
-                    cvss["availabilityImpact"] = "HIGH"
-                elif a == "L":
-                    cvss["availabilityImpact"] = "LOW"
-                else:
-                    cvss["availabilityImpact"] = "NONE"
+            if av == "N":
+                cvss["attackVector"] = "NETWORK"
+            elif av == "A":
+                cvss["attackVector"] = "ADJACENT_NETWORK"
+            elif av == "L":
+                cvss["attackVector"] = "LOCAL"
             else:
-                av, ac, at, pr, ui, vc, vi, va, sc, si, sa, e = extract_cvssv4_attr(cvssv3_vec)
-                cvss["vectorString"] = cvssv3_vec
-                cvss["version"] = "4.0"
+                cvss["attackVector"] = "PHYSICAL"
 
-                if av == "N":
-                    cvss["attackVector"] = "NETWORK"
-                elif av == "A":
-                    cvss["attackVector"] = "ADJACENT_NETWORK"
-                elif av == "L":
-                    cvss["attackVector"] = "LOCAL"
-                else:
-                    cvss["attackVector"] = "PHYSICAL"
+            if ac == "L":
+                cvss["attackComplexity"] = "LOW"
+            else:
+                cvss["attackComplexity"] = "HIGH"
 
-                if ac == "L":
-                    cvss["attackComplexity"] = "LOW"
-                else:
-                    cvss["attackComplexity"] = "HIGH"
+            if pr == "N":
+                cvss["privilegesRequired"] = "NONE"
+            elif pr == "L":
+                cvss["privilegesRequired"] = "LOW"
+            else:
+                cvss["privilegesRequired"] = "HIGH"
 
-                if at == "N":
-                    cvss["attackRequirements"] = "NONE"
-                else:
-                    cvss["attackRequirements"] = "PRESENT"
+            if ui == "N":
+                cvss["userInteraction"] = "NONE"
+            else:
+                cvss["userInteraction"] = "REQUIRED"
 
-                if pr == "N":
-                    cvss["privilegesRequired"] = "NONE"
-                elif pr == "L":
-                    cvss["privilegesRequired"] = "LOW"
-                else:
-                    cvss["privilegesRequired"] = "HIGH"
+            if s == "C":
+                cvss["scope"] = "CHANGED"
+            else:
+                cvss["scope"] = "UNCHANGED"
 
-                if ui == "N":
-                    cvss["userInteraction"] = "NONE"
-                elif ui == "P":
-                    cvss["userInteraction"] = "PASSIVE"
-                else:
-                    cvss["userInteraction"] = "ACTIVE"
+            if c == "H":
+                cvss["confidentialityImpact"] = "HIGH"
+            elif c == "L":
+                cvss["confidentialityImpact"] = "LOW"
+            else:
+                cvss["confidentialityImpact"] = "NONE"
 
-                if vc == "H":
-                    cvss["vulnConfidentialityImpact"] = "HIGH"
-                elif vc == "L":
-                    cvss["vulnConfidentialityImpact"] = "LOW"
-                else:
-                    cvss["vulnConfidentialityImpact"] = "NONE"
+            if i == "H":
+                cvss["integrityImpact"] = "HIGH"
+            elif i == "L":
+                cvss["integrityImpact"] = "LOW"
+            else:
+                cvss["integrityImpact"] = "NONE"
 
-                if vi == "H":
-                    cvss["vulnIntegrityImpact"] = "HIGH"
-                elif vi == "L":
-                    cvss["vulnIntegrityImpact"] = "LOW"
-                else:
-                    cvss["vulnIntegrityImpact"] = "NONE"
-
-                if va == "H":
-                    cvss["vulnAvailabilityImpact"] = "HIGH"
-                elif va == "L":
-                    cvss["vulnAvailabilityImpact"] = "LOW"
-                else:
-                    cvss["vulnAvailabilityImpact"] = "NONE"
-
-                if sc == "H":
-                    cvss["subConfidentialityImpact"] = "HIGH"
-                elif sc == "L":
-                    cvss["subConfidentialityImpact"] = "LOW"
-                else:
-                    cvss["subConfidentialityImpact"] = "NONE"
-
-                if si == "H":
-                    cvss["subIntegrityImpact"] = "HIGH"
-                elif si == "L":
-                    cvss["subIntegrityImpact"] = "LOW"
-                else:
-                    cvss["subIntegrityImpact"] = "NONE"
-
-                if sa == "H":
-                    cvss["subAvailabilityImpact"] = "HIGH"
-                elif sa == "L":
-                    cvss["subAvailabilityImpact"] = "LOW"
-                else:
-                    cvss["subAvailabilityImpact"] = "NONE"
-
-                if e == "X":
-                    cvss["exploitMaturity"] = "NOT_DEFINED"
-                elif e == "A":
-                    cvss["exploitMaturity"] = "ATTACKED"
-                elif e == "P":
-                    cvss["exploitMaturity"] = "PROOF_OF_CONCEPT"
-                else:
-                    cvss["exploitMaturity"] = "UNREPORTED"
+            if a == "H":
+                cvss["availabilityImpact"] = "HIGH"
+            elif a == "L":
+                cvss["availabilityImpact"] = "LOW"
+            else:
+                cvss["availabilityImpact"] = "NONE"
 
         if cvssv3_score:
             base_score = float(cvssv3_score)
@@ -995,10 +900,6 @@ class cve:
                 "description": "An out-of-bounds read vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to get secret values via {str_vectors}.",
                 "mitigation": "",
             },
-            "CWE-190": {
-                "description": "An integer overflow or wraparound vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to compromise the security of the system via {str_vectors}.",
-                "mitigation": "",
-            },
             "CWE-200": {
                 "description": "An exposure of sensitive information vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to compromise the security of the system via {str_vectors}.",
                 "mitigation": "",
@@ -1014,10 +915,6 @@ class cve:
             },
             "CWE-287": {
                 "description": "An improper authentication vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to compromise the security of the system via {str_vectors}.",
-                "mitigation": "",
-            },
-            "CWE-306": {
-                "description": "A missing authentication for critical function vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to gain access to and execute certain functions via {str_vectors}.",
                 "mitigation": "",
             },
             "CWE-319": {
@@ -1046,10 +943,6 @@ class cve:
             },
             "CWE-427": {
                 "description": "An insecure library loading vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to execute code through insecure library loading via {str_vectors}.",
-                "mitigation": "",
-            },
-            "CWE-428": {
-                "description": "An unquoted search path or element vulnerability has been reported to affect {affected}. If exploited, the vulnerability could allow {remote_authenticated} to execute unauthorized code or commands via {str_vectors}.",
                 "mitigation": "",
             },
             "CWE-476": {

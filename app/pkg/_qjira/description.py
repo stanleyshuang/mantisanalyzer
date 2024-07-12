@@ -232,56 +232,33 @@ def extract_quality_score(keyword, content):
     return None
 
 
-def extract_cvss_score(content):
+def extract_cvssv3_score(content):
     """
     example:    CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N (7.6)
                 CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
-                CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N (2.4)
-                CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P (0.9)
     return:     CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N, 7.6
     """
     m = re.search(
-        r"(CVSS:4.0\/AV:[NALP]\/AC:[LH]\/AT:[NP]\/PR:[NLH]\/UI:[NPA]\/VC:[HLN]\/VI:[HLN]\/VA:[HLN]\/SC:[HLN]\/SI:[HLN]\/SA:[HLN](?:\/E:[XAPU])?)\D*(\d{1}.\d{1})",
+        r"(CVSS:3.1/AV:[NALP]/AC:[LH]/PR:[NLH]/UI:[NR]/S:[UC]/C:[HLN]/I:[HLN]/A:[HLN]).*\((\d{1}.\d{1})\)",
         content,
     )
     if m:
-        return m.group(1), m.group(2), True
-    
-    m = re.search(
-        r"(CVSS:4.0\/AV:[NALP]\/AC:[LH]\/AT:[NP]\/PR:[NLH]\/UI:[NPA]\/VC:[HLN]\/VI:[HLN]\/VA:[HLN]\/SC:[HLN]\/SI:[HLN]\/SA:[HLN](?:\/E:[XAPU])?)",
-        content,
-    )
-    if m:
-        return m.group(1), None, True
-
-
-
-    m = re.search(
-        r"(CVSS:3.1\/AV:[NALP]\/AC:[LH]\/PR:[NLH]\/UI:[NR]\/S:[UC]\/C:[HLN]\/I:[HLN]\/A:[HLN])\D*(\d{1}.\d{1})",
-        content,
-    )
-    if m:
-        return m.group(1), m.group(2), False
-
-    m = re.search(
-        r"(CVSS:3.1\/AV:[NALP]\/AC:[LH]\/PR:[NLH]\/UI:[NR]\/S:[UC]\/C:[HLN]\/I:[HLN]\/A:[HLN])",
-        content,
-    )
-    if m:
-        return m.group(1), None, False
-
-
-    if content.lower().find("cvssv3 score") >= 0 or content.lower().find("cvss score") >= 0:
-        m = re.search(r"cvssv.*(\d{1}\.\d{1})", content.lower())
+        return m.group(1), m.group(2)
+    else:
+        m = re.search(
+            r"(CVSS:3.1/AV:[NALP]/AC:[LH]/PR:[NLH]/UI:[NR]/S:[UC]/C:[HLN]/I:[HLN]/A:[HLN])",
+            content,
+        )
         if m:
-            return None, m.group(1), False
-
-    if content.lower().find("cvssv4 score") >= 0 or content.lower().find("cvssv4 base + threat score") >= 0 or content.lower().find("cvss score") >= 0:
-        m = re.search(r"cvssv.*(\d{1}\.\d{1})", content.lower())
-        if m:
-            return None, m.group(1), True
-
-    return None, None, None
+            return m.group(1), None
+        if (
+            content.lower().find("cvssv3 score") >= 0
+            or content.lower().find("cvss score") >= 0
+        ):
+            m = re.search(r"cvssv.*(\d{1}\.\d{1})", content.lower())
+            if m:
+                return None, m.group(1)
+    return None, None
 
 
 def extract_cvssv3_attr(content):
@@ -306,54 +283,6 @@ def extract_cvssv3_attr(content):
             m.group(8),
         )
     return None, None, None, None, None, None, None, None
-
-
-def extract_cvssv4_attr(content):
-    """
-    example:    CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N
-                CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P
-    return:     AV, AC, AT, PR, UI, VC, VI, VA, SC, SI, SA, E
-    """
-    m = re.search(
-        r"CVSS:4.0\/AV:([NALP])\/AC:([LH])\/AT:([NP])\/PR:([NLH])\/UI:([NPA])\/VC:([HLN])\/VI:([HLN])\/VA:([HLN])\/SC:([HLN])\/SI:([HLN])\/SA:([HLN])\/E:([XAPU])",
-        content,
-    )
-    if m:
-        return (
-            m.group(1),
-            m.group(2),
-            m.group(3),
-            m.group(4),
-            m.group(5),
-            m.group(6),
-            m.group(7),
-            m.group(8),
-            m.group(9),
-            m.group(10),
-            m.group(11),
-            m.group(12),
-        )
-    else:
-        m = re.search(
-            r"CVSS:4.0\/AV:([NALP])\/AC:([LH])\/AT:([NP])\/PR:([NLH])\/UI:([NPA])\/VC:([HLN])\/VI:([HLN])\/VA:([HLN])\/SC:([HLN])\/SI:([HLN])\/SA:([HLN])",
-            content,
-        )
-        if m:
-            return (
-                m.group(1),
-                m.group(2),
-                m.group(3),
-                m.group(4),
-                m.group(5),
-                m.group(6),
-                m.group(7),
-                m.group(8),
-                m.group(9),
-                m.group(10),
-                m.group(11),
-                None
-            )
-    return None, None, None, None, None, None, None, None, None, None, None, None
 
 
 def extract_jirakey_num(content):
@@ -1065,19 +994,6 @@ def parse_store_publish_process(
                 )
                 version_begin = m.group(1) + ".x"
                 return product, "", version, version_begin
-            else:
-                m = re.search(r"(\d{1,2}).(\d{1,2}).(\d{1,2})", ver_n_bld)
-                if (
-                    m
-                    and m.group(1)
-                    and m.group(2)
-                    and m.group(3)
-                ):
-                    product = model
-                    version = ver_n_bld
-                    version_begin = m.group(1) + '.' + m.group(2) + ".x"
-                return product, "", version, version_begin
-
     elif key and "QTSHBS00" in key:
         m = re.search(r"(\d{1,2}).(\d{1,2}).(\d{4})", ver_n_bld)
         if m and m.group(1) and m.group(2) and m.group(3):
@@ -1830,26 +1746,6 @@ def parse_store_publish_process(
             )
             version_begin = m.group(1) + "." + m.group(2) + ".x"
             return product, "", version, version_begin
-        else:    
-            m = re.search(
-                r"qufirewall_(\d{1,2}\.\d{1,2})\.\d{1,2}_(\d{4})(\d{2})(\d{2})",
-                filelink,
-            )
-            if m and m.group(1) and m.group(2) and m.group(3) and m.group(4):
-                product = model
-                platform = ""
-                version = (
-                    ver_n_bld
-                    + " ( "
-                    + m.group(2)
-                    + "/"
-                    + m.group(3)
-                    + "/"
-                    + m.group(4)
-                    + " )"
-                )
-                version_begin = m.group(1) + ".x"
-                return product, "", version, version_begin
     elif key and "QVRPOCNT" in key:
         m = re.search(r"(\d{1,2})\.(\d{1,2})\.(\d{1,2})\.(\d{4})", ver_n_bld)
         if m and m.group(1) and m.group(2) and m.group(3) and m.group(4):
@@ -1913,17 +1809,6 @@ def parse_store_publish_process(
                 + " )"
             )
             version_begin = m.group(1) + ".x.x"
-            return product, "", version, version_begin
-    elif key and "QTSNTSTN" in key:
-        m = re.search(
-            r"(\d{1,2}\.\d{1,2})\.(\d{1,2})-\d{4}\d{2}\d{2}",
-            ver_n_bld,
-        )
-        if m and m.group(1) and m.group(2):
-            product = model
-            platform = ""
-            version = m.group(1) + "." + m.group(2)
-            version_begin = m.group(1) + ".x"
             return product, "", version, version_begin
 
     print("---     Store Publish Process - project {key} not found".format(key=key))

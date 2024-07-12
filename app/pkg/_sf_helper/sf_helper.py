@@ -260,14 +260,12 @@ def create_case(
             "Rest assured, we will notify you with further details promptly. "
             "Should you have any questions or require an update on the progress of your report, please do not hesitate to respond to this email. \n\n"
         ).format(name=name, case_num=case_num)
-        '''
         if sf_data["description"].find("BEGIN PGP ") < 0:
             submission_received += (
                 "To further enhance the security of our communication, we recommend that you use PGP encryption with your email when submitting future vulnerability reports. "
                 "You can find our PGP encryption public key at https://www.qnap.com/en/security-advisories/.\n\n"
                 "Thank you for your cooperation and understanding.\n\n"
             )
-        '''
         submission_received += "Best regards, \n" "QNAP PSIRT"
 
         subject = "[v-report.received] " + sf_data["subject"]
@@ -415,7 +413,7 @@ def update_reply_record(
 
     # 如果內容為 HTML 轉純文字
     decrypted_content = html_2_text(decrypted_content)
-    decrypted_content = decrypted_content.replace("\U0001F60A", "").replace("\U0001F600", "").replace("\U0001F642", "") # 這個字符會讓 Jira 當掉
+    decrypted_content = decrypted_content.replace("\U0001F60A", "") # 這個字符會讓 Jira 當掉
 
     ### Search if there is the issue created
     sf_case_num_tag = "SF:{sf_case_num}".format(sf_case_num=sf_case_num)
@@ -671,11 +669,6 @@ def respond(
             "- The other information is mandatory for frontend.\n\n"
             "\n** APIKEY: 771f660168d3ecc003bd7910f2f6f5d9 **\n"
             "- This apiKey is provided by Algolia service and can be used on the frontend. Please refer to: https://www.algolia.com/doc/guides/security/api-keys/#search-only-api-key\n\n"
-            "\n** APIKEY: OTE3MWFjNzdiNzVlOGRlZjYxY2JlMTJhMGY4ODdmOGM1MTA5ZDVjYTg4ZTEwMTZkZTJhNzQ3MDA4ZGQ0ZjJjOHRhZ0ZpbHRlcnM9 **\n"
-            "- The API key is intended to be exposed and it only has the capability of querying public product information. Thus, it does not pose any potential risk of unauthorized access, data theft, malicious actions or financial loss.\n"
-            "- The API key falls within designated security parameters and is deliberately provided to the frontend to enable product queries directly to the third-party search service - Algolia. Please note, this functionality is part of the design and poses no risk to the system, user data or functionality.\n\n"
-            "\n** APIKEY: P6GPaFo6jy314cNHGN3PxWTGYsEN8VBg **"
-            "- "
             "\n** account.qnap.com logout CFRF 規格 **\n"
             "- The current implementation of the Account Center clears all sessions and logs out upon calling https://account.qnap.com/signout, irrespective of the method used. No additional checks are performed at this point.\n"
             "- Similar to our system, Google also employs a comparable solution, where accessing https://accounts.google.com/Logout results in a complete logout.\n\n"
@@ -770,15 +763,7 @@ def respond(
             salesforce_username,
             salesforce_password,
             sf_data["sf_case_id"],
-            root_cause="Others",
-            root_cause_description='vulnerability report accepted',
-        )
-        sf_update_case(
-            salesforce_orgid,
-            salesforce_username,
-            salesforce_password,
-            sf_data["sf_case_id"],
-            status="Resolved",
+            status="Waiting Customer",
         )
         mail = i_mail(subject, body)
         mail.send()

@@ -12,9 +12,8 @@ from pkg._qjira.description import extract_cveid
 from pkg._qjira.description import extract_cweid
 from pkg._qjira.description import extract_capecid
 from pkg._qjira.description import extract_quality_score
-from pkg._qjira.description import extract_cvss_score
+from pkg._qjira.description import extract_cvssv3_score
 from pkg._qjira.description import extract_cvssv3_attr
-from pkg._qjira.description import extract_cvssv4_attr
 from pkg._qjira.description import extract_sa_title
 from pkg._qjira.description import extract_pf_pt_ver
 from pkg._qjira.description import sync_summary_content
@@ -264,104 +263,24 @@ class ExtractCvssv3ScoreTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_extract_cvss_score_10(self):
-        vec, score, b_40 = extract_cvss_score(
+    def test_extract_cvssv3_score_10(self):
+        vec, score = extract_cvssv3_score(
             "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N (7.6)"
         )
         self.assertTrue(
-            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N" == vec and "7.6" == score and not b_40
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N" == vec and "7.6" == score
         )
 
-    def test_extract_cvss_score_101(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N-7.6"
-        )
-        self.assertTrue(
-            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N" == vec and "7.6" == score and not b_40
-        )
+    def test_extract_cvssv3_score_20(self):
+        vec, score = extract_cvssv3_score("Hello World")
+        self.assertTrue(None == vec and None == score)
 
-    def test_extract_cvss_score_11(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N (2.4)"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N" == vec and "2.4" == score and b_40
-        )
-
-    def test_extract_cvss_score_111(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N-2.4"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N" == vec and "2.4" == score and b_40
-        )
-
-    def test_extract_cvss_score_12(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P (0.9)"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P" == vec and "0.9" == score and b_40
-        )
-
-    def test_extract_cvss_score_121(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P-0.9"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P" == vec and "0.9" == score and b_40
-        )
-
-    def test_extract_cvss_score_20(self):
-        vec, score, b_40 = extract_cvss_score("Hello World")
-        self.assertTrue(None == vec and None == score) and None == b_40
-
-    def test_extract_cvss_score_30(self):
-        vec, score, b_40 = extract_cvss_score(
+    def test_extract_cvssv3_score_30(self):
+        vec, score = extract_cvssv3_score(
             "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H"
         )
         self.assertTrue(
-            "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H" == vec and None == score and not b_40
-        )
-
-    def test_extract_cvss_score_31(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N" == vec and None == score and b_40
-        )
-
-    def test_extract_cvss_score_32(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P"
-        )
-        self.assertTrue(
-            "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N/E:P" == vec and None == score and b_40
-        )
-
-    def test_extract_cvss_score_40(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSSv3 score: 4.3"
-        )
-        self.assertTrue(
-            None == vec and "4.3" == score and not b_40
-        )
-
-    def test_extract_cvss_score_41(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSSv4 score: 5.3"
-        )
-        self.assertTrue(
-            None == vec and "5.3" == score and b_40
-        )
-
-    def test_extract_cvss_score_42(self):
-        vec, score, b_40 = extract_cvss_score(
-            "CVSSv4 base + threat score: 2.1"
-        )
-        self.assertTrue(
-            None == vec and "2.1" == score and b_40
+            "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H" == vec and None == score
         )
 
 
@@ -398,52 +317,6 @@ class ExtractCvssv3AttrTestCase(unittest.TestCase):
             and None == c
             and None == i
             and None == a
-        )
-
-
-class ExtractCvssv4AttrTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_extract_cvssv4_attr_10(self):
-        av, ac, at, pr, ui, vc, vi, va, sc, si, sa, e = extract_cvssv4_attr(
-            "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N-5.3"
-        )
-        self.assertTrue(
-            "N" == av
-            and "L" == ac
-            and "N" == at
-            and "L" == pr
-            and "N" == ui
-            and "N" == vc
-            and "N" == vi
-            and "L" == va
-            and "N" == sc
-            and "N" == si
-            and "N" == sa
-            and None == e
-        )
-
-    def test_extract_cvssv4_attr_20(self):
-        av, ac, at, pr, ui, vc, vi, va, sc, si, sa, e = extract_cvssv4_attr(
-            "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N/E:P-2.1"
-        )
-        self.assertTrue(
-            "N" == av
-            and "L" == ac
-            and "N" == at
-            and "L" == pr
-            and "N" == ui
-            and "N" == vc
-            and "N" == vi
-            and "L" == va
-            and "N" == sc
-            and "N" == si
-            and "N" == sa
-            and "P" == e
         )
 
 
@@ -1061,21 +934,6 @@ class ParseStorePublishProcessQtsBuildTestCase(unittest.TestCase):
             and "" == platform
             and "1.0.52 ( 2023/11/24 )" == version
             and "1.0.x" == ver_begin
-        )
-
-    def test_parse_store_publish_process_52(self):
-        product, platform, version, ver_begin = parse_store_publish_process(
-            "QTSMQC00-963",
-            "myQNAPcloud Link",
-            None,
-            "2.4.51",
-            filelink="//172.17.25.251/Daily_Build/Cloud_Dept/CloudLink/2.4.51/\nCloudLink_2.4.51_20231030_x86_64.qpkg\nCloudLink_2.4.51_20231030_arm_ms.qpkg\nCloudLink_2.4.51_20231030_arm_kw.qpkg\nCloudLink_2.4.51_20231030_arm_64.qpkg\nCloudLink_2.4.51_20231030_arm_al.qpkg",
-        )
-        self.assertTrue(
-            "myQNAPcloud Link" == product
-            and "" == platform
-            and "2.4.51" == version
-            and "2.4.x" == ver_begin
         )
 
     def test_parse_store_publish_process_60(self):
@@ -1779,34 +1637,3 @@ class ParseStorePublishProcessQtsBuildTestCase(unittest.TestCase):
             and "4.4.0.15 ( 2024/01/04 )" == version
             and "4.4.x.x" == ver_begin
         )
-
-    def test_parse_store_publish_process_430(self):
-        product, platform, version, ver_begin = parse_store_publish_process(
-            "CMNQUFRW-1611",
-            "QuFirewall",
-            None,
-            "2.4.1",
-            filelink="\\\\172.17.25.251\\Daily_Build\\ANP_Team\\SW5\\QTSApp\\qufirewall\\daily_build\\v2.4.1\\20240201\nqufirewall_2.4.1_20240201090812_x86_64.qpkg\nqufirewall_2.4.1_20240201090812_arm_64.qpkg\nqufirewall_2.4.1_20240201090812_arm-x41.qpkg",
-        )
-        self.assertTrue(
-            "QuFirewall" == product
-            and "" == platform
-            and "2.4.1 ( 2024/02/01 )" == version
-            and "2.4.x" == ver_begin
-        )
-
-    def test_parse_store_publish_process_440(self):
-        product, platform, version, ver_begin = parse_store_publish_process(
-            "QTSNTSTN-1058",
-            "Notes Station 3",
-            "Recommend to use 2GB or above RAM",
-            "3.9.6-20240423",
-            filelink="\\\\172.17.21.5\\pub\\daily_build\\NotesStation3\\2024\Apr\\23\\\nNotesStation3_3.9.6-20240423_313934_v3.9.6_x86.qpkg\nNotesStation3_3.9.6-20240423_313934_v3.9.6_arm-x41.qpkg\nNotesStation3_3.9.6-20240423_313934_v3.9.6_arm-rtk.qpkg",
-        )
-        self.assertTrue(
-            "Notes Station 3" == product
-            and "" == platform
-            and "3.9.6" == version
-            and "3.9.x" == ver_begin
-        )
-

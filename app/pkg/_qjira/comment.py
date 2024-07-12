@@ -7,6 +7,7 @@
 #
 from datetime import datetime
 from pkg._util.util_datetime import utc_to_local_str, duration_days
+from pkg._qjira.description import extract_cweid, extract_cvssv3_score
 
 
 ###############################################################################
@@ -62,8 +63,8 @@ def comment_parser(the_obj, comment, filters, callback):
 def gpt_chat_completion(prompt):
     if prompt is None or len(prompt) == 0:
         prompt = "你好！"
-    # print("--- Prompt: --------------------------------------")
-    # print(prompt)
+    print("--- Prompt: --------------------------------------")
+    print(prompt)
 
     try:
         import os
@@ -90,8 +91,8 @@ def gpt_chat_completion(prompt):
         return message_text
 
     except Exception as e:
-        print("!!! 例外錯誤:", str(e))
-        return None
+        print("Error:", str(e))
+        return ""
 
 
 def file_text_content(path):
